@@ -45,7 +45,6 @@ Veryfi you are inside the container
 whoami
 
 
-
 Install Required System Dependencies (Inside Container)
 
 Qt requires OpenGL and display libraries:
