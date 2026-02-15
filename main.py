@@ -1,27 +1,38 @@
 import sys
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton
 from PySide6.QtCore import Qt
+from lockdown_widget import LockdownQtWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QPushButton,
+    QMessageBox,
+)
+
+import mullvad_cli  # must provide get_lockdown_state() and set_lockdown_state(enabled: bool)
+
 
 def main() -> int:
     app = QApplication(sys.argv)
-    
-    w=QWidget()
+
+    w = QWidget()
     w.setWindowTitle("Mullvad UI")
-    w.resize(520,300)
+    w.resize(520, 300)
 
     layout = QVBoxLayout(w)
 
-    title = QLabel("Hello from first version")
+    title = QLabel("Mullvad UI")
     title.setAlignment(Qt.AlignmentFlag.AlignCenter)
     title.setStyleSheet("font-size: 24px; font-weight: 600;")
     layout.addWidget(title)
 
-    btn = QPushButton("Click")
-    btn.clicked.connect(lambda: title.setText("Clicked"))
-    layout.addWidget(btn)
+    lockdown = LockdownQtWidget(w)
+    layout.addWidget(lockdown)
 
     w.show()
     return app.exec()
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
