@@ -47,7 +47,7 @@ pip install -r requirements.txt
 ```
 
 
-Verify installation:
+3️⃣ Verify installation:
 
 ```bash
 python -c "import PySide6; print('OK')"
