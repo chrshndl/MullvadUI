@@ -1,5 +1,6 @@
 from __future__ import annotations
 import subprocess
+import time
 
 
 class MullvadCliError(RuntimeError):
@@ -39,3 +40,93 @@ def set_lockdown_state(enabled: bool) -> None:
     """
     val = "on" if enabled else "off"
     _run(["mullvad", "lockdown-mode", "set", val])
+
+def get_connection_state() -> bool:
+    """
+    Returns True if connection mode is ON, False if OFF.
+
+    Example output:
+      "Block traffic when the VPN is disconnected: on"
+    """
+    out = _run(["mullvad", "status"]).lower().strip()
+
+    if out.lower().startswith("connected"):
+        return True
+    
+    if out.lower().startswith("disconnected"):
+        return False    
+    
+    if "connecting" in out or "disconnecting" in out:
+        raise MullvadCliError("Connection state transitional")
+
+    raise MullvadCliError(f"Unrecognized output from mullvad: {out}")
+
+
+def connect() -> None:
+    """
+    Docstring for connect
+
+    Connects the Mullvad VPN
+
+    Verifies connection
+    """
+    _run(["mullvad", "connect"])
+    wait_for_connection_state(True)
+    
+def disconnect() -> None:
+    """
+    Docstring for disconnect
+
+    Disconnects the Mullvad VPN
+
+    Verifies disconnection
+    """
+    _run(["mullvad", "disconnect"])
+    wait_for_connection_state(False)
+    
+def toggle_connection() -> bool:
+    """
+    Docstring for toggle_connection
+    
+    :return: True if connected, False otherwise.
+    :rtype: bool
+    """
+    current_state = get_connection_state()
+
+    if current_state:
+        disconnect()
+        return False
+    else:
+        connect()
+        return True
+
+#region helpers
+
+def wait_for_connection_state(target: bool, timeout: float=10.0) -> None:
+    """
+    Docstring for wait_for_connection_state
+    
+    :param target: ignored
+    :type target: bool
+    :param timeout: Time to wait for connect/disconnect procedure
+    :type timeout: float
+    """
+    start = time.time()
+
+    while time.time() - start < timeout:
+        try:
+            state = get_connection_state()
+            if state == target:
+                return
+        except MullvadCliError:
+            pass
+
+        time.sleep(0.5)
+
+    raise MullvadCliError(
+        f"Timeout waiting for mullvad to become"
+        f"{'connected' if target else 'disconnected'}."
+        )
+
+
+#endregion helpers 

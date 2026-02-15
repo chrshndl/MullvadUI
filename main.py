@@ -1,6 +1,7 @@
 import sys
 from PySide6.QtCore import Qt
 from lockdown_widget import LockdownQtWidget
+from connect_disconnect import ConnectDisconnectQtWidget
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -29,6 +30,9 @@ def main() -> int:
 
     lockdown = LockdownQtWidget(w)
     layout.addWidget(lockdown)
+
+    connect_disconnect = ConnectDisconnectQtWidget(w)
+    layout.addWidget(connect_disconnect)    
 
     w.show()
     return app.exec()
