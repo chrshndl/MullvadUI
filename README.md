@@ -1,57 +1,16 @@
-# MullvadUI
+MullvadUI
 
-Minimal PySide6 desktop UI prototype developed inside a Fedora container using Distrobox.
-This project is designed to run in a containerized development environment to keep host dependencies clean and reproducible.
+Minimal PySide6 desktop UI prototype for controlling Mullvad VPN features (e.g. lockdown mode).
 
----
+Runs directly on Bazzite (Fedora Atomic) using a local Python virtual environment.
 
-## 🧱 Development Environment
+📦 Requirements (At a Glance)
+System Packages (Fedora / Bazzite)
 
-- **Host OS:** Bazzite (Fedora Atomic)
-- **Container:** Fedora 40 (via Distrobox)
-- **Container Runtime:** Podman
-- **Python:** Virtual environment (`.venv`)
-- **GUI Framework:** PySide6 (Qt6)
-
----
-
-# 🚀 Setup Instructions
-
-## 1️⃣ Host Requirements
-
-Ensure the following tools are installed on the host:
-
-podman --version
-distrobox --version
-
-
-If missing (on Bazzite):
+Install once on the host:
 
 ```bash
-sudo rpm-ostree install podman
-sudo systemctl reboot
-```
-
-
-Create Development Container
-
-```bash
-distrobox create -n dev -i fedora:40
-distrobox enter dev
-```
-Veryfi you are inside the container
-
-whoami
-
-
-Install Required System Dependencies (Inside Container)
-
-Qt requires OpenGL and display libraries:
-
-```bash
-sudo dnf -y update
-
-sudo dnf -y install \
+sudo rpm-ostree install \
   python3 python3-pip python3-venv \
   mesa-libGL mesa-libEGL \
   libxkbcommon libxkbcommon-x11 \
@@ -59,13 +18,25 @@ sudo dnf -y install \
   xcb-util-cursor
 ```
 
-These fix common errors such as:
-libGL.so.1
-libxkbcommon.so.0
-Qt platform plugin "xcb"
-Wayland/X11 display issues
+Reboot after installing:
 
-Clone the Repository
+```bash
+systemctl reboot
+```
+
+Python Packages (inside venv)
+PySide6
+
+
+Installed via:
+
+```bash
+pip install -r requirements.txt
+```
+
+🚀 Repository Setup
+
+1️⃣ Clone
 
 ```bash
 mkdir -p ~/projects
@@ -74,62 +45,39 @@ git clone <REPO_URL>
 cd MullvadUI
 ```
 
-Create Virtual Environment
+2️⃣ Create Virtual Environment
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -U pip
-pip install PySide6
+pip install -r requirements.txt
 ```
 
-Verify installation:
+
+Verify:
 
 ```bash
 python -c "import PySide6; print('OK')"
 ```
 
-Run the Application
+▶️ Run the Application
 
 ```bash
 source .venv/bin/activate
 python main.py
 ```
-
-Running the GUI (Important)
-Recommended Workflow
-
-Edit in VS Code, but run the GUI from a distrobox enter terminal:
-
-```bash
-distrobox enter dev
-cd ~/projects/MullvadUI
-source .venv/bin/activate
-python main.py
-```
-This ensures proper Wayland/X11 forwarding.
-
-
-
-If You See Display Errors
-
-Errors like:
-
-```bash
-qt.qpa.xcb: could not connect to display
-Authorization required, but no authorization protocol specified
-```
-Run the application from a distrobox enter terminal instead of VS Code debug.
-
 
 🧪 Development Workflow
 
-Activate environment:
+Activate environment before working:
 
 ```bash
 source .venv/bin/activate
-```
-Install new packages:
+´´´
+
+
+Install new package:
 
 ```bash
 pip install <package>
@@ -141,46 +89,48 @@ MullvadUI/
 │
 ├── .venv/
 ├── main.py
+├── mullvad_cli.py
+├── lockdown_widget.py
 ├── requirements.txt
 └── README.md
 
-🐛 Common Issues & Fixes
+🐛 Common Issues
+qt.qpa.xcb: could not connect to display
+
+Make sure you're running inside a graphical session (Wayland or X11).
 
 ImportError: libGL.so.1
-
-```bash
-sudo dnf install mesa-libGL
-```
+sudo rpm-ostree install mesa-libGL
 
 ImportError: libxkbcommon.so.0
+sudo rpm-ostree install libxkbcommon
 
-```bash
-sudo dnf install libxkbcommon
-```
+Git permission errors after container usage
 
-Qt platform plugin "xcb" error
+If .git/ was previously owned by root:
 
-```bash
-sudo dnf install xcb-util-cursor
-```
+sudo chown -R $USER:$USER .
 
 🧠 Notes
 
-Always use the local .venv
+Do not mix Tkinter and PySide6.
 
-Avoid running development as root
+Always use the local .venv.
 
-Recreate the virtual environment if the container is rebuilt
+Avoid running development as root.
 
-Prefer Wayland over X11 when possible
+Mullvad CLI must be installed and working:
 
+mullvad lockdown-mode get
 
 📌 Future Improvements
 
-Refactor into structured application layout
+Move to structured application layout (src/)
 
 Add logging
 
-Add CI pipeline
+Add background threading for CLI calls
 
-Add packaging (PyInstaller / Briefcase / fbs)
+Add system tray integration
+
+Package as native RPM or AppImage
