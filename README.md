@@ -1,7 +1,6 @@
 # MullvadUI
 
 Minimal PySide6 desktop UI prototype developed inside a Fedora container using Distrobox.
-
 This project is designed to run in a containerized development environment to keep host dependencies clean and reproducible.
 
 ---
