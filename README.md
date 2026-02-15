@@ -1,38 +1,30 @@
 MullvadUI
 
-Minimal PySide6 desktop UI prototype for controlling Mullvad VPN features (e.g. lockdown mode).
+Minimal PySide6 desktop tray UI for controlling Mullvad VPN features
+(e.g. lockdown mode, connect/disconnect).
 
-Runs directly on Bazzite (Fedora Atomic) using a local Python virtual environment.
+Designed to run on Bazzite / Fedora Atomic using a local Python virtual environment.
 
-📦 Requirements (At a Glance)
-System Packages (Fedora / Bazzite)
 
-Install once on the host:
+📦 Requirements
+System (Fedora / Bazzite)
+
+Only Python and venv support are required:
 
 ```bash
-sudo rpm-ostree install \
-  python3 python3-pip python3-venv \
-  mesa-libGL mesa-libEGL \
-  libxkbcommon libxkbcommon-x11 \
-  qt6-qtwayland \
-  xcb-util-cursor
+sudo rpm-ostree install python3 python3-venv
 ```
 
-Reboot after installing:
+
+Reboot once after installing:
 
 ```bash
 systemctl reboot
 ```
 
-Python Packages (inside venv)
-PySide6
 
-
-Installed via:
-
-```bash
-pip install -r requirements.txt
-```
+No additional Qt system packages required.
+PySide6 is installed locally inside the virtual environment.
 
 🚀 Repository Setup
 
@@ -55,7 +47,7 @@ pip install -r requirements.txt
 ```
 
 
-Verify:
+3️⃣ Verify installation:
 
 ```bash
 python -c "import PySide6; print('OK')"
@@ -68,13 +60,16 @@ source .venv/bin/activate
 python main.py
 ```
 
-🧪 Development Workflow
+```bash
+🔁 Development Workflow
+```
 
 Activate environment before working:
 
 ```bash
+cd ~/projects/MullvadUI
 source .venv/bin/activate
-´´´
+```
 
 
 Install new package:
@@ -84,6 +79,49 @@ pip install <package>
 pip freeze > requirements.txt
 ```
 
+🖥 Autostart (KDE Plasma)
+
+Create a start script:
+
+```bash
+start.sh
+```
+
+```bash
+#!/usr/bin/env bash
+cd /var/home/$USER/projects/MullvadUI || exit 1
+source .venv/bin/activate
+exec python main.py
+```
+
+
+Make it executable:
+
+```bash
+chmod +x start.sh
+```
+
+
+Create autostart entry:
+
+```bash
+~/.config/autostart/mullvadui.desktop
+```
+
+[Desktop Entry]
+Type=Application
+Name=MullvadUI
+Exec=/var/home/$USER/projects/MullvadUI/start.sh
+X-KDE-autostart-after=panel
+
+🧠 Wayland Notes
+
+Window positioning cannot be forced pixel-perfect under Wayland.
+
+The app uses a tool-style window that behaves like a tray popup.
+
+Last window position is remembered automatically.
+
 📁 Project Structure
 MullvadUI/
 │
@@ -91,46 +129,59 @@ MullvadUI/
 ├── main.py
 ├── mullvad_cli.py
 ├── lockdown_widget.py
+├── connect_disconnect.py
 ├── requirements.txt
 └── README.md
 
 🐛 Common Issues
+PySide6 not found
+
+You are not inside the virtual environment:
+
+source .venv/bin/activate
+
+Running outside graphical session
+
+If you see:
+
 qt.qpa.xcb: could not connect to display
 
-Make sure you're running inside a graphical session (Wayland or X11).
 
-ImportError: libGL.so.1
-sudo rpm-ostree install mesa-libGL
+Ensure you're inside a Wayland or X11 session.
 
-ImportError: libxkbcommon.so.0
-sudo rpm-ostree install libxkbcommon
+Git permission errors
 
-Git permission errors after container usage
-
-If .git/ was previously owned by root:
+If .git was created as root:
 
 sudo chown -R $USER:$USER .
 
-🧠 Notes
-
-Do not mix Tkinter and PySide6.
-
-Always use the local .venv.
-
-Avoid running development as root.
+🔐 Requirements
 
 Mullvad CLI must be installed and working:
 
+mullvad status
 mullvad lockdown-mode get
 
 📌 Future Improvements
 
-Move to structured application layout (src/)
+Structured application layout (src/)
 
-Add logging
+Logging
 
-Add background threading for CLI calls
+Background threading for CLI calls
 
-Add system tray integration
+Packaging via PyInstaller (portable binary)
 
-Package as native RPM or AppImage
+systemd --user service instead of KDE autostart
+
+Warum das jetzt "perfekt passend" ist
+
+Kein übertriebenes Atomic Layering
+
+Kein unnötiges Qt System-Package Chaos
+
+venv-first Ansatz (Best Practice für Atomic)
+
+Tray + Wayland korrekt berücksichtigt
+
+README passt exakt zu deinem aktuellen Code
